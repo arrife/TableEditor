@@ -20,7 +20,7 @@ public class SimpleTable extends JTable {
             }
 
             public Object getValueAt(int row, int col) {
-                return rowData[row][col];
+                return ((Cell) rowData[row][col]).getValue();
             }
 
             public boolean isCellEditable(int row, int column) {

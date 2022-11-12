@@ -5,10 +5,10 @@ import services.functions.Term;
 import java.util.HashSet;
 
 public class Expression {
-    private String expression;
+    private final String expression;
     private HashSet<String> arguments;
-    private Term termTree;
-    private Object value;
+    private final Term termTree;
+    private final Object value;
 
     public  Expression(Object expression) {
         if (expression instanceof String) {
@@ -20,5 +20,9 @@ public class Expression {
             termTree = null;
             value = expression;
         }
+    }
+
+    public Object getValue() {
+        return value;
     }
 }
