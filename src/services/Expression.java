@@ -5,24 +5,25 @@ import services.functions.Term;
 import java.util.HashSet;
 
 public class Expression {
-    private final String expression;
     private HashSet<String> arguments;
-    private final Term termTree;
+    private final Term expression;
     private final Object value;
 
-    public  Expression(Object expression) {
-        if (expression instanceof String) {
-            this.expression = (String) expression;
-            termTree = TermParser.parse(this.expression);
-            value = termTree.eval();
+    public Expression(Object value) {
+        if (value instanceof String && TermParser.isExpression(value)) {
+            this.expression = TermParser.parse((String) value);
+            this.value = this.expression.eval();
         } else {
             this.expression = null;
-            termTree = null;
-            value = expression;
+            this.value = value;
         }
     }
 
     public Object getValue() {
         return value;
+    }
+
+    public Term getExpression() {
+        return expression;
     }
 }

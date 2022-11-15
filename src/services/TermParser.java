@@ -7,19 +7,28 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 
 public final class TermParser {
-    public static final Hashtable<String, Class<?>> FUNCTIONS = new Hashtable<>(){{
+    public static final Hashtable<String, Class<?>> FUNCTIONS = new Hashtable<>() {{
         put("ADD", Add.class);
         put("MUL", Mul.class);
         put("DIV", Div.class);
         put("MINUS", Minus.class);
     }};
 
-    private TermParser() {}
+    private TermParser() {
+    }
 
-    public static Term parse(String expression) {
-        String processedExpression = expression.toUpperCase().replaceAll("\\s+", "");
-        String[] tokens = processedExpression.split("(?<=[+\\-*/(),])|(?=[+\\-*/(),])");
+    public static Term parse(final String expression) {
+        if (!isExpression(expression)) {
+            throw new IllegalArgumentException("String is not an expression");
+        }
+        String[] tokens = expression.replaceFirst("=", "")
+                .toUpperCase().replaceAll("\\s+", "")
+                .split("(?<=[+\\-*/(),])|(?=[+\\-*/(),])");
         return getTermTree(tokens, 0);
+    }
+
+    public static boolean isExpression(final Object value) {
+        return (value instanceof String && ((String) value).length() > 0 && ((String) value).charAt(0) == '=');
     }
 
     private static Term getTermTree(String[] tokens, int start) {
@@ -58,6 +67,9 @@ public final class TermParser {
     }
 
     private static Term getMultiplicativeTerm (String[] tokens, int start) {
+        if (start >= tokens.length) {
+            throw new IllegalArgumentException("End of the expression found while parsing");
+        }
         String token = tokens[start];
         if ("+-".contains(token)) {
             Term term = getMultiplicativeTerm(tokens, start + 1);

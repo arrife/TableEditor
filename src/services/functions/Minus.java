@@ -15,7 +15,12 @@ public class Minus extends UnaryOperation {
         if (!(subTerms.get(0).eval() instanceof Double)) {
             throw new IllegalArgumentException("Minus operator working only with numbers");
         } else {
-            return -(Double) subTerms.get(0).eval() ;
+            return -(Double) subTerms.get(0).eval();
         }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("-%s", subTerms.get(0).toString());
     }
 }

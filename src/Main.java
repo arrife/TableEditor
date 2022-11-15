@@ -1,4 +1,3 @@
-import models.Cell;
 import models.SimpleTable;
 
 import javax.swing.*;
@@ -38,17 +37,7 @@ public class Main {
                         "Pool", 10, false}
         };
 
-        int n = data.length;
-        int m = data[0].length;
-        Cell[][] processedData = new Cell[n][m];
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < m; j++) {
-                processedData[i][j] = new Cell(data[i][j]);
-            }
-        }
 
-
-
-        SwingUtilities.invokeLater(() -> createAndShowGUI(processedData, columnNames));
+        SwingUtilities.invokeLater(() -> createAndShowGUI(data, columnNames));
     }
 }

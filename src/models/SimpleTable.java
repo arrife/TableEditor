@@ -2,36 +2,23 @@ package models;
 
 
 import javax.swing.*;
-import javax.swing.table.AbstractTableModel;
+import java.awt.*;
 
 public class SimpleTable extends JTable {
     public SimpleTable(Object[][] rowData, String[] columnNames) {
-        super(new AbstractTableModel() {
-            public String getColumnName(int column) {
-                return columnNames[column];
-            }
+        super();
+        this.setModel(new ExtendedTableModel(rowData, columnNames));
 
-            public int getRowCount() {
-                return rowData.length;
-            }
-
-            public int getColumnCount() {
-                return columnNames.length;
-            }
-
-            public Object getValueAt(int row, int col) {
-                return ((Cell) rowData[row][col]).getValue();
-            }
-
-            public boolean isCellEditable(int row, int column) {
-                return true;
-            }
-
-            public void setValueAt(Object value, int row, int col) {
-                ((Cell) rowData[row][col]).setValue(value);
-                this.fireTableCellUpdated(row, col);
+        this.addPropertyChangeListener("tableCellEditor", propertyChangeEvent -> {
+            int i = this.getSelectedRow();
+            int j = this.getSelectedColumn();
+            Component editor = this.getEditorComponent();
+            if (editor instanceof JTextField && this.dataModel instanceof ExtendedTableModel
+                    && propertyChangeEvent.getNewValue() != null) {
+                ((JTextField) editor).setText(((ExtendedTableModel) this.dataModel).getExpressionAt(i, j));
             }
         });
+
     }
 
 }
