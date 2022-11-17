@@ -1,12 +1,15 @@
 package services.functions;
 
+import java.io.IOException;
+
 public class Add extends BinaryOperation {
 
+    @SuppressWarnings("unused")
     public Add() {
         super("ADD");
     }
 
-    public Add(Term left, Term right) {
+    public Add(Term left, Term right) throws IOException {
         super(left, right, "ADD");
     }
 
@@ -16,11 +19,7 @@ public class Add extends BinaryOperation {
     }
 
     @Override
-    public Double eval() {
-        if (!(subTerms.get(0).eval() instanceof Double) || !(subTerms.get(1).eval() instanceof Double)) {
-            throw new IllegalArgumentException("Plus operator working only with numbers");
-        } else {
-            return (Double) subTerms.get(0).eval() + (Double) subTerms.get(1).eval();
-        }
+    public double operation(double left, double right) {
+        return left + right;
     }
 }

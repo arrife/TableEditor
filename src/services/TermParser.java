@@ -2,12 +2,16 @@ package services;
 
 import services.functions.*;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class TermParser {
     public static final Hashtable<String, Class<?>> FUNCTIONS = new Hashtable<>() {{
+        put("PLUS", Add.class);
         put("ADD", Add.class);
         put("MUL", Mul.class);
         put("DIV", Div.class);
@@ -17,29 +21,56 @@ public final class TermParser {
     private TermParser() {
     }
 
-    public static Term parse(final String expression) {
+    public static Term parse(final String expression) throws IOException {
         if (!isExpression(expression)) {
             throw new IllegalArgumentException("String is not an expression");
         }
         String[] tokens = expression.replaceFirst("=", "")
                 .toUpperCase().replaceAll("\\s+", "")
                 .split("(?<=[+\\-*/(),])|(?=[+\\-*/(),])");
-        return getTermTree(tokens, 0);
+        return parseTermTree(tokens, 0);
     }
 
     public static boolean isExpression(final Object value) {
         return (value instanceof String && ((String) value).length() > 0 && ((String) value).charAt(0) == '=');
     }
 
-    private static Term getTermTree(String[] tokens, int start) {
-        Term term = getAdditiveTerm(tokens, start);
+    public static boolean isNumeric(String s) {
+        return s.matches("\\d*\\.?\\d+|\\d+\\.?\\d*");
+    }
+
+    public static boolean isAddress(String s) {
+        return s.matches("[A-Z]+\\d+");
+    }
+
+    public static int getAddressColumn(String address) {
+        int column = 0;
+        int position = 0;
+        while (Character.isUpperCase(address.charAt(position))) {
+            column *= 26;
+            column += address.charAt(position) - 'A';
+            position += 1;
+        }
+        return column;
+    }
+
+    public static int getAddressRow(String address) {
+        Matcher m = Pattern.compile("\\d+").matcher(address);
+        if (!m.find()) {
+            throw new IllegalArgumentException("The string is not an address");
+        }
+        return Integer.parseInt(m.group());
+    }
+
+    private static Term parseTermTree(String[] tokens, int start) throws IOException {
+        Term term = parseAdditiveTerm(tokens, start);
         int position = start + term.length;
         while (position < tokens.length) {
             String token = tokens[position];
             if (!token.equals("+") && !token.equals("-")) {
                 break;
             }
-            Term rightTerm = getAdditiveTerm(tokens, position);
+            Term rightTerm = parseAdditiveTerm(tokens, position);
             position += rightTerm.length;
             term = new Add(term, rightTerm);
             term.addLength(-1);
@@ -47,15 +78,15 @@ public final class TermParser {
         return term;
     }
 
-    private static Term getAdditiveTerm(String[] tokens, int start) {
-        Term term  = getMultiplicativeTerm(tokens, start);
+    private static Term parseAdditiveTerm(String[] tokens, int start) throws IOException {
+        Term term = parseMultiplicativeTerm(tokens, start);
         int position = start + term.length;
         while (position < tokens.length) {
             String token = tokens[position];
             if (!"*/".contains(token)) {
                 break;
             }
-            Term rightTerm = getMultiplicativeTerm(tokens, position + 1);
+            Term rightTerm = parseMultiplicativeTerm(tokens, position + 1);
             position += rightTerm.length;
             if (token.equals("*")) {
                 term = new Mul(term, rightTerm);
@@ -66,13 +97,13 @@ public final class TermParser {
         return term;
     }
 
-    private static Term getMultiplicativeTerm (String[] tokens, int start) {
+    private static Term parseMultiplicativeTerm(String[] tokens, int start) throws IOException {
         if (start >= tokens.length) {
-            throw new IllegalArgumentException("End of the expression found while parsing");
+            throw new IOException("End of the expression found while parsing");
         }
         String token = tokens[start];
         if ("+-".contains(token)) {
-            Term term = getMultiplicativeTerm(tokens, start + 1);
+            Term term = parseMultiplicativeTerm(tokens, start + 1);
             if (token.equals("+")) {
                 term.addLength(1);
             } else {
@@ -83,25 +114,26 @@ public final class TermParser {
         return getAtomTerm(tokens, start);
     }
 
-    private static ArrayList<Term> parseArguments(String[] tokens, int start) {
+    private static ArrayList<Term> parseArgumentsList(String[] tokens, int start) throws IOException {
         ArrayList<Term> arguments = new ArrayList<>();
         int position = start;
         do {
             position++;
-            arguments.add(getTermTree(tokens, position));
+            arguments.add(parseTermTree(tokens, position));
             position += arguments.get(arguments.size() - 1).length;
         } while (tokens[position].equals(","));
         if (!tokens[position].equals(")")) {
-            throw new IllegalArgumentException("Incorrect sequence of brackets");
+            throw new IOException("Incorrect sequence of brackets");
         }
         return arguments;
     }
 
-    private static Term parseFunction(String[] tokens, int start) {
+    private static Term parseFunction(String[] tokens, int start) throws IOException {
         if (!FUNCTIONS.containsKey(tokens[start])) {
-            throw new IllegalArgumentException("Function is not found");
+            System.out.println(tokens[start]);
+            throw new IOException("Function is not found");
         }
-        ArrayList<Term> arguments = parseArguments(tokens, start + 1);
+        ArrayList<Term> arguments = parseArgumentsList(tokens, start + 1);
         try {
             Class<?> functionName = FUNCTIONS.get(tokens[start]);
             Term term = (Term) functionName.getConstructor().newInstance();
@@ -113,11 +145,12 @@ public final class TermParser {
         }
     }
 
-    private static Term getAtomTerm(String[] tokens, int start) {
+
+    private static Term getAtomTerm(String[] tokens, int start) throws IOException {
         if (tokens[start].equals("(")) {
-            ArrayList<Term> terms = parseArguments(tokens, start);
+            ArrayList<Term> terms = parseArgumentsList(tokens, start);
             if (terms.size() != 1) {
-                throw new IllegalArgumentException("Invalid syntax");
+                throw new IOException("There should be only one expression");
             }
             terms.get(0).addLength(2);
             return terms.get(0);

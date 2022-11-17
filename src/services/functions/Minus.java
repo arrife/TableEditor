@@ -1,22 +1,21 @@
 package services.functions;
 
+import java.io.IOException;
+
 public class Minus extends UnaryOperation {
 
+    @SuppressWarnings("unused")
     public Minus() {
         super("MINUS");
     }
 
-    public Minus(Term term) {
+    public Minus(Term term) throws IOException {
         super(term, "MINUS");
     }
 
     @Override
-    public Double eval() {
-        if (!(subTerms.get(0).eval() instanceof Double)) {
-            throw new IllegalArgumentException("Minus operator working only with numbers");
-        } else {
-            return -(Double) subTerms.get(0).eval();
-        }
+    public double operation(double var) {
+        return -var;
     }
 
     @Override
