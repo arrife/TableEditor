@@ -6,11 +6,11 @@ public class Div extends BinaryOperation {
 
     @SuppressWarnings("unused")
     public Div() {
-        super("DIV");
+        super("DIV", "Division of two numbers");
     }
 
     public Div(Term left, Term right) throws IOException {
-        super(left, right, "DIV");
+        super(left, right, "DIV", "Division of two numbers");
     }
 
 

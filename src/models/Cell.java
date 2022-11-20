@@ -21,10 +21,6 @@ public class Cell {
         setValue(value);
     }
 
-    public Object getValue() {
-        return value;
-    }
-
     public void setValue(Object value) {
         if (TermParser.isExpression(value)) {
             expression = (String) value;
@@ -37,8 +33,12 @@ public class Cell {
         }
     }
 
+    public boolean isExpression() {
+        return expression != null;
+    }
+
     private void parseExpression() {
-        if (expression != null) {
+        if (isExpression()) {
             arguments = new HashSet<>();
             try {
                 termTree = TermParser.parse(expression);
@@ -56,7 +56,7 @@ public class Cell {
     public void calculate(AbstractTableModel dm) {
         if (termTree != null) {
             try {
-                this.value = termTree.eval(dm);
+                this.value = Value.of(termTree.eval(dm));
             } catch (IOException e) {
                 this.value = String.format("Calculation error: %s", e.getMessage());
             }
@@ -71,6 +71,15 @@ public class Cell {
         if (expression != null) {
             return expression;
         }
+        return value.toString();
+    }
+
+    public Object getValue() {
+        return value;
+    }
+
+    @Override
+    public String toString() {
         return value.toString();
     }
 }

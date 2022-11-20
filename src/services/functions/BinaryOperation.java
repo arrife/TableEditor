@@ -6,12 +6,12 @@ import java.util.List;
 
 public abstract class BinaryOperation extends Term {
 
-    public BinaryOperation(String name) {
-        super(2, name);
+    public BinaryOperation(String name, String description) {
+        super(2, name, description);
     }
 
-    public BinaryOperation(Term left, Term right, String name) throws IOException {
-        super(2, name);
+    public BinaryOperation(Term left, Term right, String name, String description) throws IOException {
+        this(name, description);
         applyTo(List.of(left, right));
         length = left.length + right.length + 1;
     }

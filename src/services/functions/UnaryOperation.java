@@ -6,12 +6,12 @@ import java.util.List;
 
 public abstract class UnaryOperation extends Term {
 
-    public UnaryOperation(String name) {
-        super(1, name);
+    public UnaryOperation(String name, String description) {
+        super(1, name, description);
     }
 
-    public UnaryOperation(Term term, String name) throws IOException {
-        super(1, name);
+    public UnaryOperation(Term term, String name, String description) throws IOException {
+        this(name, description);
         applyTo(List.of(term));
         length = term.length + 1;
     }

@@ -10,6 +10,6 @@ public final class Address {
     }
 
     public boolean belongTo(int firstRow, int lastRow, int column) {
-        return (firstRow <= row) && (row <= lastRow) && (this.column == column);
+        return (firstRow <= row) && (row <= lastRow) && (this.column == column || column == -1);
     }
 }

@@ -6,11 +6,11 @@ public class Add extends BinaryOperation {
 
     @SuppressWarnings("unused")
     public Add() {
-        super("ADD");
+        super("ADD", "Sum of two numbers");
     }
 
     public Add(Term left, Term right) throws IOException {
-        super(left, right, "ADD");
+        super(left, right, "ADD", "Sum of two numbers");
     }
 
     @Override
