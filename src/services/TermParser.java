@@ -6,12 +6,12 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class TermParser {
     public static final Hashtable<String, Class<?>> FUNCTIONS = new Hashtable<>() {{
-        put("PLUS", Add.class);
         put("ADD", Add.class);
         put("MUL", Mul.class);
         put("DIV", Div.class);
@@ -51,7 +51,7 @@ public final class TermParser {
             column += address.charAt(position) - 'A';
             position += 1;
         }
-        return column;
+        return column + 1;
     }
 
     public static int getAddressRow(String address) {
@@ -121,8 +121,8 @@ public final class TermParser {
             position++;
             arguments.add(parseTermTree(tokens, position));
             position += arguments.get(arguments.size() - 1).length;
-        } while (tokens[position].equals(","));
-        if (!tokens[position].equals(")")) {
+        } while (position < tokens.length && tokens[position].equals(","));
+        if (position >= tokens.length || !tokens[position].equals(")")) {
             throw new IOException("Incorrect sequence of brackets");
         }
         return arguments;
@@ -131,7 +131,7 @@ public final class TermParser {
     private static Term parseFunction(String[] tokens, int start) throws IOException {
         if (!FUNCTIONS.containsKey(tokens[start])) {
             System.out.println(tokens[start]);
-            throw new IOException("Function is not found");
+            throw new IOException(String.format("Function %s is not found", tokens[start]));
         }
         ArrayList<Term> arguments = parseArgumentsList(tokens, start + 1);
         try {
@@ -141,7 +141,7 @@ public final class TermParser {
             return term;
         } catch (InstantiationException | IllegalAccessException | NoSuchMethodException |
                  InvocationTargetException e) {
-            throw new RuntimeException(e);
+            throw new IOException(String.format("Function %s is not found", tokens[start]));
         }
     }
 
@@ -159,5 +159,17 @@ public final class TermParser {
         } else {
             return new Value(tokens[start]);
         }
+    }
+
+    public static List<List<String>> getEmptyData(int rowCount, int columnCount) {
+        List<List<String>> data = new ArrayList<>();
+        for (int i = 0; i < rowCount; i++) {
+            ArrayList<String> row = new ArrayList<>();
+            data.add(row);
+            for (int j = 0; j < columnCount; j++) {
+                row.add("");
+            }
+        }
+        return data;
     }
 }

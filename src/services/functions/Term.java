@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public abstract class Term {
+    public final String description;
     public int length;
     public final int argumentsNumber;
     public final String name;
@@ -14,9 +15,10 @@ public abstract class Term {
     public HashSet<String> links;
 
 
-    public Term(int argumentsNumber, String name) {
+    public Term(int argumentsNumber, String name, String description) {
         this.argumentsNumber = argumentsNumber;
         this.name = name;
+        this.description = description;
         links = new HashSet<>();
     }
 

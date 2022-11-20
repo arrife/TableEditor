@@ -1,5 +1,6 @@
 package services.functions;
 
+import models.Cell;
 import services.TermParser;
 
 import javax.swing.table.TableModel;
@@ -11,7 +12,7 @@ public class Value extends Term {
     private final Object value;
 
     public Value(Object value) {
-        super(0, "Value");
+        super(0, "Value", "Integer, double, link or string");
         if (value instanceof String && TermParser.isAddress((String) value)) {
             links = new HashSet<>(List.of((String) value));
         }
@@ -21,7 +22,13 @@ public class Value extends Term {
 
     public static Object of(Object value) {
         if (value != null && TermParser.isNumeric(value.toString())) {
-            return Double.parseDouble(value.toString());
+            double doubleValue = Double.parseDouble(value.toString());
+            if (doubleValue % 1 == 0) {
+                return (int) doubleValue;
+            }
+            return doubleValue;
+        } else if (value instanceof Integer) {
+            return value;
         } else if (value instanceof Number) {
             return ((Number) value).doubleValue();
         } else {
@@ -36,15 +43,16 @@ public class Value extends Term {
 
     @Override
     public double eval(TableModel dm) throws IOException {
-        if (value instanceof Double) {
-            return (double) value;
+        if (value instanceof Number) {
+            return ((Number) value).doubleValue();
         } else if (value instanceof String && TermParser.isAddress((String) value)) {
             int linkRow = TermParser.getAddressRow((String) value);
             int linkColumn = TermParser.getAddressColumn((String) value);
             try {
-                Object linkValue = dm.getValueAt(linkRow, linkColumn);
-                if (linkValue instanceof Number) {
-                    return ((Number) linkValue).doubleValue();
+                Cell linkValue = (Cell) dm.getValueAt(linkRow, linkColumn);
+
+                if (linkValue.getValue() instanceof Number) {
+                    return ((Number) linkValue.getValue()).doubleValue();
                 }
             } catch (IndexOutOfBoundsException e) {
                 throw new IOException("Link index is out of bound");

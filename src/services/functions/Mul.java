@@ -6,11 +6,11 @@ public class Mul extends BinaryOperation {
 
     @SuppressWarnings("unused")
     public Mul() {
-        super("MUL");
+        super("MUL", "Product of two numbers");
     }
 
     public Mul(Term left, Term right) throws IOException {
-        super(left, right, "MUL");
+        super(left, right, "MUL", "Product of two numbers");
     }
 
 

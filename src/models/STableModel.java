@@ -3,40 +3,45 @@ package models;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;
+import java.util.List;
 
-public class ExtendedTableModel extends AbstractTableModel {
-    ArrayList<ArrayList<Cell>> data;
-    String[] columnNames;
+public class STableModel extends AbstractTableModel {
+    private final ArrayList<ArrayList<Cell>> data;
+    private final ArrayList<String> columnNames;
 
-    public ExtendedTableModel(Object[][] data) {
+    public STableModel(List<List<String>> data) {
         int columnCount = 0;
-        for (Object[] row : data) {
-            if (columnCount < row.length) {
-                columnCount = row.length;
+        for (List<String> row : data) {
+            if (columnCount < row.size()) {
+                columnCount = row.size();
             }
         }
 
-        this.columnNames = new String[columnCount];
+        this.columnNames = new ArrayList<>();
+        this.columnNames.add("");
         for (int i = 0; i < columnCount; i++) {
-            this.columnNames[i] = getColumnName(i);
+            this.columnNames.add(super.getColumnName(i));
         }
 
         this.data = new ArrayList<>();
-        for (Object[] dataRow : data) {
+        for (int i = 0; i < data.size(); i++) {
             ArrayList<Cell> row = new ArrayList<>();
             this.data.add(row);
-            for (int i = 0; i < columnCount; i++) {
-                if (i < dataRow.length) {
-                    row.add(new Cell(dataRow[i]));
+            row.add(new Cell(i));
+            for (int j = 0; j < columnCount; j++) {
+                if (j < data.get(i).size()) {
+                    row.add(new Cell(data.get(i).get(j)));
                 } else {
                     row.add(new Cell(""));
                 }
             }
         }
+
+        calculateAll();
     }
 
     public String getColumnName(int column) {
-        return columnNames[column];
+        return columnNames.get(column);
     }
 
     public int getRowCount() {
@@ -44,11 +49,11 @@ public class ExtendedTableModel extends AbstractTableModel {
     }
 
     public int getColumnCount() {
-        return columnNames.length;
+        return columnNames.size();
     }
 
     public Object getValueAt(int row, int column) {
-        return data.get(row).get(column).getValue();
+        return data.get(row).get(column);
     }
 
     public String getExpressionAt(int row, int column) {
@@ -56,15 +61,23 @@ public class ExtendedTableModel extends AbstractTableModel {
     }
 
     public boolean isCellEditable(int row, int column) {
-        return true;
+        return (column != 0);
     }
 
     public void setValueAt(Object value, int row, int column) {
         Cell cell = data.get(row).get(column);
         cell.setValue(value);
         this.updateArgumentsListener(row, column);
-        cell.calculate(ExtendedTableModel.this);
+        cell.calculate(STableModel.this);
         this.fireTableCellUpdated(row, column);
+    }
+
+    public void calculateAll() {
+        for (int i = 0; i < getRowCount(); i++) {
+            for (int j = 1; j < getColumnCount(); j++) {
+                data.get(i).get(j).calculate(STableModel.this);
+            }
+        }
     }
 
     protected TableModelListener createArgumentsListener(int row, int column) {
@@ -73,8 +86,8 @@ public class ExtendedTableModel extends AbstractTableModel {
             boolean argumentsChanged = cell.dependsOn(tableModelEvent.getFirstRow(), tableModelEvent.getLastRow(),
                     tableModelEvent.getColumn());
             if (argumentsChanged) {
-                cell.calculate(ExtendedTableModel.this);
-                ExtendedTableModel.this.fireTableCellUpdated(row, column);
+                cell.calculate(STableModel.this);
+                STableModel.this.fireTableCellUpdated(row, column);
             }
         };
     }
@@ -90,5 +103,27 @@ public class ExtendedTableModel extends AbstractTableModel {
         } else {
             cell.argumentsListener = null;
         }
+    }
+
+    public ArrayList<ArrayList<Cell>> getData() {
+        return data;
+    }
+
+    public void addRow() {
+        ArrayList<Cell> row = new ArrayList<>();
+        row.add(new Cell(getRowCount()));
+        for (int i = 1; i < getColumnCount(); i++) {
+            row.add(new Cell(""));
+        }
+        data.add(row);
+        fireTableStructureChanged();
+    }
+
+    public void addColumn() {
+        columnNames.add(super.getColumnName(getColumnCount()));
+        for (int i = 0; i < getRowCount(); i++) {
+            data.get(i).add(new Cell(""));
+        }
+        fireTableStructureChanged();
     }
 }

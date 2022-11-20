@@ -6,11 +6,11 @@ public class Minus extends UnaryOperation {
 
     @SuppressWarnings("unused")
     public Minus() {
-        super("MINUS");
+        super("MINUS", "Return opposite number");
     }
 
     public Minus(Term term) throws IOException {
-        super(term, "MINUS");
+        super(term, "MINUS", "Return opposite number");
     }
 
     @Override
